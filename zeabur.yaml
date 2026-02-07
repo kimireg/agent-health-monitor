@@ -1,0 +1,36 @@
+# Zeabur Deployment Configuration
+# Reference: https://zeabur.com/docs/zh-CN
+
+# Service configuration
+services:
+  - name: agent-health-monitor
+    type: web
+    
+    # Build configuration
+    build:
+      type: docker
+      dockerfile: ./Dockerfile
+    
+    # Environment variables
+    env:
+      - name: PORT
+        value: "8080"
+      - name: GO_ENV
+        value: "production"
+    
+    # Resource limits (optional)
+    resources:
+      memory: 512Mi
+      cpu: 500m
+    
+    # Health check
+    health_check:
+      path: /health
+      port: 8080
+      initial_delay_seconds: 10
+      period_seconds: 30
+    
+    # Auto-scaling (optional)
+    scaling:
+      min_replicas: 1
+      max_replicas: 2

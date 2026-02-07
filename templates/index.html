@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agent Health Monitor</title>
+    <meta http-equiv="refresh" content="30">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: #f5f5f5;
+            color: #333;
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        header {
+            background: #fff;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        h1 {
+            color: #2c3e50;
+            font-size: 2rem;
+            margin-bottom: 10px;
+        }
+        
+        .timestamp {
+            color: #7f8c8d;
+            font-size: 0.9rem;
+        }
+        
+        .overall-status {
+            font-size: 1.5rem;
+            padding: 15px 30px;
+            border-radius: 50px;
+            display: inline-block;
+            margin-top: 15px;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .overall-status.healthy {
+            background: #27ae60;
+            color: white;
+        }
+        
+        .overall-status.degraded {
+            background: #f39c12;
+            color: white;
+        }
+        
+        .overall-status.unhealthy {
+            background: #e74c3c;
+            color: white;
+        }
+        
+        .services-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 20px;
+        }
+        
+        .service-card {
+            background: #fff;
+            border-radius: 10px;
+            padding: 25px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        
+        .service-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+        }
+        
+        .service-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #ecf0f1;
+        }
+        
+        .service-title {
+            font-size: 1.3rem;
+            color: #2c3e50;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .service-icon {
+            font-size: 1.5rem;
+        }
+        
+        .status-badge {
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+        
+        .status-badge.healthy {
+            background: #d4efdf;
+            color: #27ae60;
+        }
+        
+        .status-badge.warning {
+            background: #fdebd0;
+            color: #f39c12;
+        }
+        
+        .status-badge.error, .status-badge.critical {
+            background: #fadbd8;
+            color: #e74c3c;
+        }
+        
+        .status-badge.unknown {
+            background: #e5e7e9;
+            color: #7f8c8d;
+        }
+        
+        .service-details {
+            display: grid;
+            gap: 10px;
+        }
+        
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+        }
+        
+        .detail-label {
+            color: #7f8c8d;
+            font-size: 0.9rem;
+        }
+        
+        .detail-value {
+            font-weight: 600;
+            color: #2c3e50;
+        }
+        
+        .detail-value.success {
+            color: #27ae60;
+        }
+        
+        .detail-value.error {
+            color: #e74c3c;
+        }
+        
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #ecf0f1;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-top: 5px;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            border-radius: 4px;
+            transition: width 0.3s ease;
+        }
+        
+        .progress-fill.healthy {
+            background: #27ae60;
+        }
+        
+        .progress-fill.warning {
+            background: #f39c12;
+        }
+        
+        .progress-fill.critical {
+            background: #e74c3c;
+        }
+        
+        .cron-jobs {
+            margin-top: 10px;
+        }
+        
+        .cron-job {
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 8px;
+            font-size: 0.85rem;
+        }
+        
+        .cron-schedule {
+            font-family: 'Courier New', monospace;
+            color: #3498db;
+            font-weight: bold;
+        }
+        
+        .error-message {
+            color: #e74c3c;
+            font-size: 0.9rem;
+            padding: 10px;
+            background: #fadbd8;
+            border-radius: 5px;
+            margin-top: 10px;
+        }
+        
+        footer {
+            text-align: center;
+            padding: 20px;
+            color: #7f8c8d;
+            font-size: 0.85rem;
+            margin-top: 20px;
+        }
+        
+        .refresh-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            color: #3498db;
+        }
+        
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        
+        .spinner {
+            animation: spin 1s linear infinite;
+        }
+
+        @media (max-width: 768px) {
+            .services-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            h1 {
+                font-size: 1.5rem;
+            }
+            
+            .overall-status {
+                font-size: 1.2rem;
+                padding: 10px 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🔍 Agent Health Monitor</h1>
+            <p class="timestamp">Last updated: {{.Timestamp.Format "2006-01-02 15:04:05"}}</p>
+            <div class="overall-status {{.Status}}">
+                {{.Status}}
+            </div>
+        </header>
+
+        <div class="services-grid">
+            <!-- Email System -->
+            <div class="service-card">
+                <div class="service-header">
+                    <div class="service-title">
+                        <span class="service-icon">📧</span>
+                        Email System
+                    </div>
+                    <span class="status-badge {{.Email.Status}}">{{.Email.Status}}</span>
+                </div>
+                <div class="service-details">
+                    <div class="detail-row">
+                        <span class="detail-label">Mirador Running</span>
+                        <span class="detail-value {{if .Email.MiradorRunning}}success{{else}}error{{end}}">
+                            {{if .Email.MiradorRunning}}✓ Yes{{else}}✗ No{{end}}
+                        </span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Processor Status</span>
+                        <span class="detail-value">{{.Email.ProcessorStatus}}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Queue Length</span>
+                        <span class="detail-value">{{.Email.QueueLength}}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Last Boot Scan</span>
+                        <span class="detail-value">{{.Email.LastBootScan.Format "15:04"}}</span>
+                    </div>
+                    {{if .Email.Error}}
+                    <div class="error-message">{{.Email.Error}}</div>
+                    {{end}}
+                </div>
+            </div>
+
+            <!-- Telegram -->
+            <div class="service-card">
+                <div class="service-header">
+                    <div class="service-title">
+                        <span class="service-icon">💬</span>
+                        Telegram
+                    </div>
+                    <span class="status-badge {{.Telegram.Status}}">{{.Telegram.Status}}</span>
+                </div>
+                <div class="service-details">
+                    <div class="detail-row">
+                        <span class="detail-label">Gateway Connected</span>
+                        <span class="detail-value {{if .Telegram.Connected}}success{{else}}error{{end}}">
+                            {{if .Telegram.Connected}}✓ Connected{{else}}✗ Disconnected{{end}}
+                        </span>
+                    </div>
+                    {{if .Telegram.Error}}
+                    <div class="error-message">{{.Telegram.Error}}</div>
+                    {{end}}
+                </div>
+            </div>
+
+            <!-- Cron Jobs -->
+            <div class="service-card">
+                <div class="service-header">
+                    <div class="service-title">
+                        <span class="service-icon">⏰</span>
+                        Cron Jobs
+                    </div>
+                    <span class="status-badge {{.Cron.Status}}">{{.Cron.Status}}</span>
+                </div>
+                <div class="service-details">
+                    <div class="detail-row">
+                        <span class="detail-label">Total Jobs</span>
+                        <span class="detail-value">{{len .Cron.Jobs}}</span>
+                    </div>
+                    {{if .Cron.Jobs}}
+                    <div class="cron-jobs">
+                        {{range .Cron.Jobs}}
+                        <div class="cron-job">
+                            <span class="cron-schedule">{{.Schedule}}</span> - {{.Name}}
+                            <br><small>Last run: {{.LastRun.Format "2006-01-02 15:04"}}</small>
+                        </div>
+                        {{end}}
+                    </div>
+                    {{end}}
+                    {{if .Cron.Error}}
+                    <div class="error-message">{{.Cron.Error}}</div>
+                    {{end}}
+                </div>
+            </div>
+
+            <!-- System Resources -->
+            <div class="service-card">
+                <div class="service-header">
+                    <div class="service-title">
+                        <span class="service-icon">🖥️</span>
+                        System Resources
+                    </div>
+                    <span class="status-badge {{.System.Status}}">{{.System.Status}}</span>
+                </div>
+                <div class="service-details">
+                    <div class="detail-row">
+                        <span class="detail-label">Disk Usage</span>
+                        <span class="detail-value {{if gt .System.DiskUsage 90.0}}error{{else if gt .System.DiskUsage 80.0}}warning{{else}}success{{end}}">
+                            {{printf "%.1f" .System.DiskUsage}}%
+                        </span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill {{if gt .System.DiskUsage 90.0}}critical{{else if gt .System.DiskUsage 80.0}}warning{{else}}healthy{{end}}" 
+                             style="width: {{.System.DiskUsage}}%"></div>
+                    </div>
+                    <div class="detail-row" style="margin-top: 15px;">
+                        <span class="detail-label">Memory Usage</span>
+                        <span class="detail-value {{if gt .System.MemoryUsage 90.0}}error{{else if gt .System.MemoryUsage 80.0}}warning{{else}}success{{end}}">
+                            {{printf "%.1f" .System.MemoryUsage}}%
+                        </span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill {{if gt .System.MemoryUsage 90.0}}critical{{else if gt .System.MemoryUsage 80.0}}warning{{else}}healthy{{end}}" 
+                             style="width: {{.System.MemoryUsage}}%"></div>
+                    </div>
+                    <div class="detail-row" style="margin-top: 15px;">
+                        <span class="detail-label">Disk</span>
+                        <span class="detail-value">{{.System.DiskFree}} GB free / {{.System.DiskTotal}} GB</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Memory</span>
+                        <span class="detail-value">{{.System.MemoryFree}} GB free / {{.System.MemoryTotal}} GB</span>
+                    </div>
+                    {{if .System.Error}}
+                    <div class="error-message">{{.System.Error}}</div>
+                    {{end}}
+                </div>
+            </div>
+        </div>
+
+        <footer>
+            <p class="refresh-indicator">
+                <span class="spinner">🔄</span>
+                Auto-refresh every 30 seconds
+            </p>
+            <p>Agent Health Monitor &copy; 2025</p>
+        </footer>
+    </div>
+</body>
+</html>
