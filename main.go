@@ -51,6 +51,7 @@ type CronStatus struct {
 type CronJob struct {
 	Name        string    `json:"name"`
 	Schedule    string    `json:"schedule"`
+	Command     string    `json:"command,omitempty"`
 	LastRun     time.Time `json:"last_run"`
 	Status      string    `json:"status"`
 }
