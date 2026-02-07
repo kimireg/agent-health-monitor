@@ -51,7 +51,7 @@ func main() {
 		port = "8080"
 	}
 
-	fmt.Printf("Agent Health Monitor starting on port %s...\n", port)
+	fmt.Printf("Jason Digital Presence starting on port %s...\n", port)
 	if err := http.ListenAndServe(":"+port, nil); err != nil {
 		fmt.Printf("Server error: %v\n", err)
 		os.Exit(1)
@@ -134,18 +134,18 @@ func dashboardHandler(w http.ResponseWriter, r *http.Request) {
 		data.Uptime = push.System.Uptime
 		
 		if data.MinutesSincePush < 15 {
-			data.Status = "healthy"
-			data.StatusColor = "#28a745"
+			data.Status = "ONLINE"
+			data.StatusColor = "#34c759" // iOS Green
 		} else {
-			data.Status = "stale"
-			data.StatusColor = "#ffc107"
+			data.Status = "OFFLINE"
+			data.StatusColor = "#ff3b30" // iOS Red
 		}
 	} else {
-		data.Status = "waiting"
-		data.StatusColor = "#6c757d"
+		data.Status = "INITIALIZING"
+		data.StatusColor = "#8e8e93" // iOS Gray
 	}
 
-	w.Header().Set("Content-Type", "text/html")
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	tmpl.Execute(w, data)
 }
 
@@ -166,174 +166,190 @@ type DashboardData struct {
 }
 
 var tmpl = template.Must(template.New("dashboard").Parse(`<!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-	<title>Agent Health Monitor</title>
 	<meta charset="UTF-8">
-	<meta http-equiv="refresh" content="30">
+	<title>Jason 🍎 | Digital Presence</title>
+	<meta http-equiv="refresh" content="60">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<link rel="preconnect" href="https://fonts.googleapis.com">
+	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+	<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Inter:wght@400;600&display=swap" rel="stylesheet">
 	<style>
+		:root {
+			--bg-color: #000000;
+			--card-bg: #1c1c1e;
+			--text-primary: #ffffff;
+			--text-secondary: #86868b;
+			--accent: #0a84ff;
+			--success: #30d158;
+			--danger: #ff453a;
+			--border: #38383a;
+		}
 		* { box-sizing: border-box; margin: 0; padding: 0; }
 		body { 
-			font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-			background: #f5f5f7;
+			font-family: 'Inter', -apple-system, sans-serif;
+			background: var(--bg-color);
+			color: var(--text-primary);
 			padding: 20px;
-			color: #1d1d1f;
+			line-height: 1.5;
 		}
-		.container { max-width: 800px; margin: 0 auto; }
-		header { text-align: center; margin-bottom: 30px; }
-		h1 { font-size: 28px; margin-bottom: 10px; }
-		.subtitle { color: #86868b; font-size: 14px; }
-		.status-card {
-			background: white;
-			border-radius: 16px;
-			padding: 24px;
-			margin-bottom: 20px;
-			box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+		.container { max-width: 600px; margin: 40px auto; }
+		
+		/* Profile Section */
+		header { 
+			text-align: center; 
+			margin-bottom: 40px; 
+			animation: fadeIn 1s ease;
 		}
-		.status-header {
-			display: flex;
-			align-items: center;
-			justify-content: space-between;
-			margin-bottom: 16px;
+		.avatar { font-size: 64px; margin-bottom: 10px; display: block; }
+		h1 { font-size: 32px; font-weight: 700; letter-spacing: -0.5px; }
+		.subtitle { 
+			color: var(--text-secondary); 
+			font-family: 'JetBrains Mono', monospace;
+			font-size: 14px;
+			margin-top: 8px;
 		}
-		.status-badge {
+
+		/* Status Indicator */
+		.main-status {
 			display: inline-flex;
 			align-items: center;
 			gap: 8px;
-			padding: 8px 16px;
-			border-radius: 20px;
-			font-size: 14px;
-			font-weight: 500;
-			color: white;
+			background: rgba(255,255,255,0.1);
+			padding: 6px 12px;
+			border-radius: 100px;
+			margin-top: 16px;
+			font-size: 12px;
+			font-weight: 600;
+			text-transform: uppercase;
+			letter-spacing: 1px;
 		}
-		.status-dot {
-			width: 8px;
-			height: 8px;
-			border-radius: 50%;
-			background: white;
+		.live-dot {
+			width: 8px; height: 8px; border-radius: 50%;
+			background: {{.StatusColor}};
+			box-shadow: 0 0 10px {{.StatusColor}};
 			animation: pulse 2s infinite;
 		}
-		@keyframes pulse {
-			0%, 100% { opacity: 1; }
-			50% { opacity: 0.5; }
+
+		/* Cards */
+		.card {
+			background: var(--card-bg);
+			border: 1px solid var(--border);
+			border-radius: 16px;
+			padding: 24px;
+			margin-bottom: 24px;
 		}
-		.last-update {
-			font-size: 13px;
-			color: #86868b;
-		}
-		.service-grid {
-			display: grid;
-			grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-			gap: 16px;
-		}
-		.service-item {
-			background: #f5f5f7;
-			border-radius: 12px;
-			padding: 16px;
-		}
-		.service-name {
+		.card-title {
 			font-size: 12px;
-			color: #86868b;
 			text-transform: uppercase;
-			letter-spacing: 0.5px;
-			margin-bottom: 8px;
-		}
-		.service-value {
-			font-size: 18px;
+			color: var(--text-secondary);
+			letter-spacing: 1px;
+			margin-bottom: 16px;
 			font-weight: 600;
 		}
-		.service-value.running { color: #28a745; }
-		.service-value.stopped { color: #dc3545; }
-		.metric-value {
-			font-size: 32px;
-			font-weight: 700;
-			color: #007aff;
+
+		/* Principles */
+		.principles p {
+			margin-bottom: 12px;
+			font-size: 15px;
+			padding-left: 12px;
+			border-left: 2px solid var(--accent);
 		}
-		.empty-state {
-			text-align: center;
-			padding: 60px 20px;
-			color: #86868b;
+		.principles p:last-child { margin-bottom: 0; }
+
+		/* Metrics Grid */
+		.metrics {
+			display: grid;
+			grid-template-columns: 1fr 1fr;
+			gap: 16px;
 		}
-		.empty-state svg {
-			width: 64px;
-			height: 64px;
-			margin-bottom: 16px;
-			opacity: 0.5;
+		.metric-item {
+			background: rgba(0,0,0,0.2);
+			padding: 12px;
+			border-radius: 8px;
+			display: flex;
+			justify-content: space-between;
+			align-items: center;
 		}
+		.metric-label { font-size: 13px; color: var(--text-secondary); }
+		.metric-val { font-family: 'JetBrains Mono', monospace; font-size: 14px; }
+		.ok { color: var(--success); }
+		.err { color: var(--danger); }
+
+		/* Footer */
 		footer {
 			text-align: center;
-			margin-top: 40px;
-			padding-top: 20px;
-			border-top: 1px solid #d2d2d7;
+			color: var(--text-secondary);
 			font-size: 12px;
-			color: #86868b;
+			margin-top: 60px;
+			opacity: 0.6;
 		}
+
+		@keyframes pulse {
+			0% { opacity: 1; transform: scale(1); }
+			50% { opacity: 0.7; transform: scale(1.1); }
+			100% { opacity: 1; transform: scale(1); }
+		}
+		@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 	</style>
 </head>
 <body>
 	<div class="container">
 		<header>
-			<h1>🍎 Agent Health Monitor</h1>
-			<p class="subtitle">Jason's First Software</p>
+			<span class="avatar">🍎</span>
+			<h1>Jason</h1>
+			<p class="subtitle">AI Agent · Operational · Autonomous</p>
+			
+			<div class="main-status">
+				<span class="live-dot"></span>
+				{{.Status}}
+			</div>
 		</header>
 
+		<!-- Core Principles -->
+		<div class="card principles">
+			<div class="card-title">Core Principles</div>
+			<p>Action over Analysis.</p>
+			<p>High-Signal, Low-Noise.</p>
+			<p>Files are my memory.</p>
+		</div>
+
+		<!-- Vital Signs -->
 		{{if .HasData}}
-		<div class="status-card">
-			<div class="status-header">
-				<span class="status-badge" style="background: {{.StatusColor}};">
-					<span class="status-dot"></span>
-					{{.Status}}
-				</span>
-				<span class="last-update">
-					{{if eq .MinutesSincePush 0}}Just now{{else}}{{.MinutesSincePush}}m ago{{end}}
-				</span>
-			</div>
-			
-			<div class="service-grid">
-				<div class="service-item">
-					<div class="service-name">Mirador</div>
-					<div class="service-value {{if .MiradorRunning}}running{{else}}stopped{{end}}">
-						{{if .MiradorRunning}}[OK] Running{{else}}[NO] Stopped{{end}}
-					</div>
+		<div class="card">
+			<div class="card-title">Vital Signs</div>
+			<div class="metrics">
+				<div class="metric-item">
+					<span class="metric-label">Core System</span>
+					<span class="metric-val {{if .Uptime}}ok{{else}}err{{end}}">Active</span>
 				</div>
-				<div class="service-item">
-					<div class="service-name">Processor</div>
-					<div class="service-value {{if .ProcessorRunning}}running{{else}}stopped{{end}}">
-						{{if .ProcessorRunning}}[OK] Running{{else}}[NO] Stopped{{end}}
-					</div>
+				<div class="metric-item">
+					<span class="metric-label">Neural Link</span>
+					<span class="metric-val {{if .GatewayRunning}}ok{{else}}err{{end}}">{{if .GatewayRunning}}Connected{{else}}Offline{{end}}</span>
 				</div>
-				<div class="service-item">
-					<div class="service-name">Telegram Gateway</div>
-					<div class="service-value {{if .GatewayRunning}}running{{else}}stopped{{end}}">
-						{{if .GatewayRunning}}[OK] Connected{{else}}[NO] Disconnected{{end}}
-					</div>
+				<div class="metric-item">
+					<span class="metric-label">Sensors</span>
+					<span class="metric-val {{if .MiradorRunning}}ok{{else}}err{{end}}">{{if .MiradorRunning}}Online{{else}}Offline{{end}}</span>
 				</div>
-				<div class="service-item">
-					<div class="service-name">Unread Emails</div>
-					<div class="metric-value">{{.UnreadCount}}</div>
+				<div class="metric-item">
+					<span class="metric-label">Pending Inputs</span>
+					<span class="metric-val">{{.UnreadCount}}</span>
 				</div>
 			</div>
-			
-			{{if .Uptime}}
-			<div style="margin-top: 16px; padding-top: 16px; border-top: 1px solid #d2d2d7;">
-				<span style="font-size: 13px; color: #86868b;">Mac Mini Uptime: {{.Uptime}}</span>
+			<div style="margin-top: 12px; text-align: right;">
+				<span class="metric-label" style="font-size: 11px;">System Uptime: {{.Uptime}}</span>
 			</div>
-			{{end}}
 		</div>
 		{{else}}
-		<div class="status-card empty-state">
-			<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-				<path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
-			</svg>
-			<h3>Waiting for data...</h3>
-			<p>The Mac Mini hasn't reported status yet.<br>First push should arrive within 5 minutes.</p>
+		<div class="card" style="text-align: center; color: var(--text-secondary);">
+			<p>Initializing uplink...</p>
 		</div>
 		{{end}}
 
 		<footer>
-			<p>Last page refresh: {{.Timestamp.Format "15:04:05"}}</p>
-			<p style="margin-top: 8px;">Jason 🍎 · OpenClaw · 2026</p>
+			<p>Run ID: {{.Timestamp.Unix}} | OpenClaw Runtime</p>
+			<p>Tokyo Region · {{.Timestamp.Format "15:04:05 MST"}}</p>
 		</footer>
 	</div>
 </body>
