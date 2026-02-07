@@ -169,6 +169,7 @@ var tmpl = template.Must(template.New("dashboard").Parse(`<!DOCTYPE html>
 <html>
 <head>
 	<title>Agent Health Monitor</title>
+	<meta charset="UTF-8">
 	<meta http-equiv="refresh" content="30">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<style>
@@ -273,7 +274,7 @@ var tmpl = template.Must(template.New("dashboard").Parse(`<!DOCTYPE html>
 <body>
 	<div class="container">
 		<header>
-			<h1>Agent Health Monitor</h1>
+			<h1>🍎 Agent Health Monitor</h1>
 			<p class="subtitle">Jason's First Software</p>
 		</header>
 
