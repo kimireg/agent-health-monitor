@@ -273,7 +273,7 @@ var tmpl = template.Must(template.New("dashboard").Parse(`<!DOCTYPE html>
 <body>
 	<div class="container">
 		<header>
-			<h1>🍎 Agent Health Monitor</h1>
+			<h1>Agent Health Monitor</h1>
 			<p class="subtitle">Jason's First Software</p>
 		</header>
 
@@ -293,19 +293,19 @@ var tmpl = template.Must(template.New("dashboard").Parse(`<!DOCTYPE html>
 				<div class="service-item">
 					<div class="service-name">Mirador</div>
 					<div class="service-value {{if .MiradorRunning}}running{{else}}stopped{{end}}">
-						{{if .MiradorRunning}}✓ Running{{else}}✗ Stopped{{end}}
+						{{if .MiradorRunning}}[OK] Running{{else}}[NO] Stopped{{end}}
 					</div>
 				</div>
 				<div class="service-item">
 					<div class="service-name">Processor</div>
 					<div class="service-value {{if .ProcessorRunning}}running{{else}}stopped{{end}}">
-						{{if .ProcessorRunning}}✓ Running{{else}}✗ Stopped{{end}}
+						{{if .ProcessorRunning}}[OK] Running{{else}}[NO] Stopped{{end}}
 					</div>
 				</div>
 				<div class="service-item">
 					<div class="service-name">Telegram Gateway</div>
 					<div class="service-value {{if .GatewayRunning}}running{{else}}stopped{{end}}">
-						{{if .GatewayRunning}}✓ Connected{{else}}✗ Disconnected{{end}}
+						{{if .GatewayRunning}}[OK] Connected{{else}}[NO] Disconnected{{end}}
 					</div>
 				</div>
 				<div class="service-item">
