@@ -1,5 +1,17 @@
 # Zeabur Deployment Configuration
 # Reference: https://zeabur.com/docs/zh-CN
+# 
+# Deployment Steps:
+# 1. Push code to GitHub
+# 2. Login to Zeabur: https://zeabur.com
+# 3. Create new project → Deploy from GitHub
+# 4. Select this repository
+# 5. Zeabur will auto-detect this configuration
+#
+# Or use Zeabur CLI:
+#   npm install -g zeabur
+#   zeabur login
+#   zeabur deploy
 
 # Service configuration
 services:
