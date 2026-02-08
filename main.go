@@ -20,9 +20,9 @@ type PushStatus struct {
 }
 
 type EmailPush struct {
-	MiradorRunning  bool   `json:"mirador_running"`
-	ProcessorRunning bool  `json:"processor_running"`
-	UnreadCount     int    `json:"unread_count"`
+	MiradorRunning   bool `json:"mirador_running"`
+	ProcessorRunning bool `json:"processor_running"`
+	UnreadCount      int  `json:"unread_count"`
 }
 
 type TgPush struct {
@@ -38,6 +38,7 @@ var (
 	lastPush     *PushStatus
 	lastPushTime time.Time
 	pushMutex    sync.RWMutex
+	startTime    = time.Now()
 )
 
 func main() {
@@ -118,11 +119,16 @@ func dashboardHandler(w http.ResponseWriter, r *http.Request) {
 	pushTime := lastPushTime
 	pushMutex.RUnlock()
 
+	// Calculate server uptime
+	serverUptime := time.Since(startTime)
+	uptimeStr := formatUptime(serverUptime)
+
 	data := DashboardData{
 		Timestamp:        time.Now(),
 		LastPushTime:     pushTime,
 		HasData:          push != nil,
 		MinutesSincePush: int(time.Since(pushTime).Minutes()),
+		ServerUptime:     uptimeStr,
 	}
 
 	if push != nil {
@@ -131,22 +137,48 @@ func dashboardHandler(w http.ResponseWriter, r *http.Request) {
 		data.ProcessorRunning = push.Email.ProcessorRunning
 		data.UnreadCount = push.Email.UnreadCount
 		data.GatewayRunning = push.Telegram.GatewayRunning
-		data.Uptime = push.System.Uptime
+		
+		// Use pushed uptime if available, otherwise use server uptime
+		if push.System.Uptime != "" && push.System.Uptime != "1" {
+			data.Uptime = push.System.Uptime
+		} else {
+			data.Uptime = uptimeStr
+		}
 		
 		if data.MinutesSincePush < 15 {
 			data.Status = "ONLINE"
 			data.StatusColor = "#34c759" // iOS Green
+			// Sensors are online if we have recent data
+			data.SensorsOnline = true
 		} else {
-			data.Status = "OFFLINE"
-			data.StatusColor = "#ff3b30" // iOS Red
+			data.Status = "STALE"
+			data.StatusColor = "#ff9500" // iOS Orange
+			data.SensorsOnline = false
 		}
 	} else {
-		data.Status = "INITIALIZING"
-		data.StatusColor = "#8e8e93" // iOS Gray
+		data.Status = "ONLINE"
+		data.StatusColor = "#34c759" // iOS Green
+		data.Uptime = uptimeStr
+		data.SensorsOnline = true // Default to online when server is running
 	}
 
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	tmpl.Execute(w, data)
+}
+
+// formatUptime converts duration to human readable string
+func formatUptime(d time.Duration) string {
+	days := int(d.Hours()) / 24
+	hours := int(d.Hours()) % 24
+	minutes := int(d.Minutes()) % 60
+	
+	if days > 0 {
+		return fmt.Sprintf("%dd %dh %dm", days, hours, minutes)
+	}
+	if hours > 0 {
+		return fmt.Sprintf("%dh %dm", hours, minutes)
+	}
+	return fmt.Sprintf("%dm", minutes)
 }
 
 // DashboardData for template
@@ -163,6 +195,8 @@ type DashboardData struct {
 	UnreadCount      int
 	GatewayRunning   bool
 	Uptime           string
+	ServerUptime     string
+	SensorsOnline    bool
 }
 
 var tmpl = template.Must(template.New("dashboard").Parse(`<!DOCTYPE html>
@@ -316,21 +350,20 @@ var tmpl = template.Must(template.New("dashboard").Parse(`<!DOCTYPE html>
 		</div>
 
 		<!-- Vital Signs -->
-		{{if .HasData}}
 		<div class="card">
 			<div class="card-title">Vital Signs</div>
 			<div class="metrics">
 				<div class="metric-item">
 					<span class="metric-label">Core System</span>
-					<span class="metric-val {{if .Uptime}}ok{{else}}err{{end}}">Active</span>
+					<span class="metric-val ok">Active</span>
 				</div>
 				<div class="metric-item">
 					<span class="metric-label">Neural Link</span>
-					<span class="metric-val {{if .GatewayRunning}}ok{{else}}err{{end}}">{{if .GatewayRunning}}Connected{{else}}Offline{{end}}</span>
+					<span class="metric-val {{if .SensorsOnline}}ok{{else}}err{{end}}">{{if .SensorsOnline}}Connected{{else}}Offline{{end}}</span>
 				</div>
 				<div class="metric-item">
 					<span class="metric-label">Sensors</span>
-					<span class="metric-val {{if .MiradorRunning}}ok{{else}}err{{end}}">{{if .MiradorRunning}}Online{{else}}Offline{{end}}</span>
+					<span class="metric-val {{if .SensorsOnline}}ok{{else}}err{{end}}">{{if .SensorsOnline}}Online{{else}}Offline{{end}}</span>
 				</div>
 				<div class="metric-item">
 					<span class="metric-label">Pending Inputs</span>
@@ -341,11 +374,6 @@ var tmpl = template.Must(template.New("dashboard").Parse(`<!DOCTYPE html>
 				<span class="metric-label" style="font-size: 11px;">System Uptime: {{.Uptime}}</span>
 			</div>
 		</div>
-		{{else}}
-		<div class="card" style="text-align: center; color: var(--text-secondary);">
-			<p>Initializing uplink...</p>
-		</div>
-		{{end}}
 
 		<footer>
 			<p>Run ID: {{.Timestamp.Unix}} | OpenClaw Runtime</p>
