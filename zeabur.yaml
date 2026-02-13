@@ -1,48 +1,18 @@
-# Zeabur Deployment Configuration
-# Reference: https://zeabur.com/docs/zh-CN
-# 
-# Deployment Steps:
-# 1. Push code to GitHub
-# 2. Login to Zeabur: https://zeabur.com
-# 3. Create new project → Deploy from GitHub
-# 4. Select this repository
-# 5. Zeabur will auto-detect this configuration
-#
-# Or use Zeabur CLI:
-#   npm install -g zeabur
-#   zeabur login
-#   zeabur deploy
-
-# Service configuration
+# Zeabur deployment configuration for Jason Front Page
+name: jason-frontpage
 services:
-  - name: agent-health-monitor
-    type: web
-    
-    # Build configuration
-    build:
-      type: docker
-      dockerfile: ./Dockerfile
-    
-    # Environment variables
+  - name: web
+    type: go
+    plan: nano
+    dockerfile: Dockerfile
     env:
-      - name: PORT
-        value: "8080"
-      - name: GO_ENV
-        value: "production"
-    
-    # Resource limits (optional)
-    resources:
-      memory: 512Mi
-      cpu: 500m
-    
-    # Health check
-    health_check:
+      - key: SERVER_ADDR
+        value: :8080
+      - key: WORKSPACE_PATH
+        value: /workspace
+    domains:
+      - jason.jakiverse.com
+    healthCheck:
       path: /health
-      port: 8080
-      initial_delay_seconds: 10
-      period_seconds: 30
-    
-    # Auto-scaling (optional)
-    scaling:
-      min_replicas: 1
-      max_replicas: 2
+      timeout: 5
+      interval: 30
