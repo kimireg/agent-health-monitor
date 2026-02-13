@@ -93,4 +93,4 @@ go build -o jason-frontpage ./cmd/server
 
 ## License
 
-This project is part of the Jason Agent ecosystem and follows the same licensing terms as the parent repository.
+This project is part of the Jason Agent ecosystem and follows the same licensing terms as the parent repository.# Force rebuild Fri Feb 13 12:15:02 CST 2026
