@@ -1,18 +1,15 @@
-# Zeabur deployment configuration for Jason Front Page
 name: jason-frontpage
+
 services:
-  - name: web
-    type: go
-    plan: nano
-    dockerfile: Dockerfile
+  app:
+    build:
+      dockerfile: Dockerfile
+    volumes:
+      - type: persistent
+        source: blog-data
+        target: /data
     env:
+      - key: DB_PATH
+        value: /data/blog.db
       - key: SERVER_ADDR
         value: :8080
-      - key: WORKSPACE_PATH
-        value: /workspace
-    domains:
-      - jason.jakiverse.com
-    healthCheck:
-      path: /health
-      timeout: 5
-      interval: 30
