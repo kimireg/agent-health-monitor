@@ -1,96 +1,130 @@
-# Jason Front Page
+# Jason Frontpage 🍎
 
-Jason's digital home - a weekly self-updating Agent presence showcase page deployed at [jason.jakiverse.com](https://jason.jakiverse.com).
+Jason Apple 的个人展示页面 — 静态 HTML，可直接部署到 GitHub Pages。
 
-## Project Vision
+---
 
-This project serves as Jason's public digital identity - a living showcase of his capabilities, mission, and collaborative relationships. Built upon the beloved visual style of the Agent Health Monitor (AHM) project, this page combines the clean, professional dashboard aesthetic with Agent identity presentation.
-
-The page automatically updates weekly to reflect current activities and focus areas while maintaining strict privacy boundaries.
-
-**Visual Design**: Built upon the beloved Agent Health Monitor (AHM) dashboard aesthetic that Kimi particularly enjoys, featuring:
-- Clean, modern dashboard layout with gradient headers
-- Card-based information architecture with subtle shadows
-- Progress bars and status indicators for system metrics
-- Responsive grid layouts for all screen sizes
-- Professional color scheme with indigo primary and green success accents
-
-## Privacy Protection Principles
-
-**This project adheres to strict privacy protection guidelines:**
-
-### 🚫 NEVER Exposed (Privacy Red Lines)
-- SOUL.md §4 Security protocols
-- TOOLS.md specific paths/configurations  
-- Sensitive conversation details
-- Credentials, keys, or authentication tokens
-- Internal system configurations
-- Private user data or interactions
-
-### ✅ Publicly Showcased
-- Identity declaration and title
-- Public mission statement
-- General work domains and capabilities
-- Collaborative relationships (with consent)
-- Public achievements and capabilities
-- Version information and update status
-
-### Data Extraction Process
-The `extractor` package handles workspace data extraction with built-in privacy filtering. All sensitive information is automatically redacted before being included in the public profile.
-
-## Architecture
+## 📁 文件结构
 
 ```
-projects/jason-frontpage/
-├── cmd/server/          # Go main application entry point
-├── internal/
-│   ├── config/          # Configuration loading and management
-│   ├── extractor/       # Workspace data extraction with privacy filtering
-│   └── renderer/        # HTML template rendering
-├── web/
-│   ├── templates/       # HTML templates
-│   └── static/          # CSS, JavaScript, and images
-├── pkg/models/          # Data models and structures
-├── zeabur.yaml          # Zeabur deployment configuration
-├── Dockerfile           # Containerization setup
-├── go.mod               # Go module definition
-└── README.md            # This documentation
+jason-frontpage/
+└── index.html    # 单页静态 HTML（包含所有 CSS）
 ```
 
-## Deployment
+---
 
-Deployed automatically via Zeabur to [jason.jakiverse.com](https://jason.jakiverse.com).
+## 🎨 设计特点
 
-- **Auto-update**: Weekly self-updating schedule
-- **Health monitoring**: Built-in health check endpoint (`/health`)
-- **Static assets**: Served from `/static/` path
+基于 **design-taste-frontend** skill 的最佳实践：
 
-## Development
+### 视觉设计
+- **字体**: Geist Sans + Geist Mono（反 Inter 偏见）
+- **色彩**: Off-black 基底 + 单一 Emerald 强调色
+- **质感**: Grain Overlay 微纹理 + Liquid Glass 玻璃态
+- **布局**: 非对称 Hero + Bento Grid 能力展示
 
-### Local Setup
+### 交互细节
+- **微动效**: Avatar 浮动动画 + Badge 脉冲效果
+- **Hover 状态**: Bento Card 悬浮 + 边框高亮
+- **性能**: CSS 硬件加速（transform/opacity）
+
+### 反 AI 设计
+- ❌ 无纯黑（#000000）
+- ❌ 无紫色/蓝色 AI 渐变
+- ❌ 无居中 Hero 布局
+- ❌ 无 3 列卡片布局
+- ❌ 无 Emoji 代码注释
+
+---
+
+## 🚀 部署到 GitHub Pages
+
+### 方式 1: 手动上传
+
+1. 创建 GitHub 仓库（如 `jason-frontpage`）
+2. 上传 `index.html` 到根目录
+3. 设置 → Pages → Source: `main` branch
+4. 访问 `https://yourusername.github.io/jason-frontpage/`
+
+### 方式 2: 命令行
+
 ```bash
-# Clone and navigate to project
-cd projects/jason-frontpage
+cd /home/kimi/.openclaw/workspace/research/jason-frontpage
 
-# Build the application
-go build -o jason-frontpage ./cmd/server
+# 初始化 Git
+git init
+git add index.html
+git commit -m "Initial commit: Jason Frontpage"
 
-# Run locally
-./jason-frontpage
+# 关联远程仓库（替换为你的仓库 URL）
+git remote add origin https://github.com/YOUR_USERNAME/jason-frontpage.git
+
+# 推送
+git push -u origin main
 ```
 
-### Environment Variables
-- `SERVER_ADDR`: Server address (default: `:8080`)
-- `WORKSPACE_PATH`: Path to agent workspace (default: `/workspace`)
-- `UPDATE_INTERVAL`: Profile update interval (default: `168h` = 1 week)
-- `PRIVACY_ENABLED`: Enable privacy filtering (default: `true`)
+---
 
-## Future Phases
+## 📱 响应式支持
 
-- **Phase 2**: Implement workspace data extraction with privacy filtering
-- **Phase 3**: Add interactive features and collaboration showcase
-- **Phase 4**: Implement automated testing and CI/CD pipeline
+- **Desktop**: 非对称双栏布局
+- **Tablet (<900px)**: 单栏堆叠
+- **Mobile (<700px)**: 完整单栏适配
 
-## License
+---
 
-This project is part of the Jason Agent ecosystem and follows the same licensing terms as the parent repository.# Force rebuild Fri Feb 13 12:15:02 CST 2026
+## 🎯 设计原则
+
+| 原则 | 应用 |
+|------|------|
+| DESIGN_VARIANCE: 8 | 非对称布局 + 留白 |
+| MOTION_INTENSITY: 6 | 微动效 + 悬浮反馈 |
+| VISUAL_DENSITY: 4 | 透气布局 + 适度信息 |
+
+---
+
+## 📊 性能指标
+
+- **文件大小**: ~16KB（单文件）
+- **外部依赖**: Google Fonts（2 个字体）
+- **JavaScript**: 无（纯静态）
+- **Lighthouse**: 预期 95+（Performance）
+
+---
+
+## 🧪 浏览器兼容性
+
+- ✅ Chrome/Edge (最新)
+- ✅ Safari (最新)
+- ✅ Firefox (最新)
+- ✅ Mobile Safari (iOS 15+)
+- ✅ Chrome for Android
+
+---
+
+## 📝 自定义
+
+### 修改强调色
+
+```css
+:root {
+  --accent: #22c55e; /* 改为你的颜色 */
+  --accent-hover: #16a34a;
+}
+```
+
+### 修改内容
+
+直接编辑 `index.html` 中的文本内容。所有 CSS 内联，无需额外文件。
+
+---
+
+## 🍎 Credits
+
+- **Design System**: design-taste-frontend skill
+- **Fonts**: Geist Sans + Geist Mono (Vercel)
+- **Icon**: Apple Emoji 🍎
+
+---
+
+**Built by Jason Apple 🍎**
